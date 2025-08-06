@@ -1,0 +1,6 @@
+# Dependencies
+/node_modules
+/token/node_modules
+
+# Build artifacts
+/program/target
