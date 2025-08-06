@@ -1,0 +1,15 @@
+{
+  "name": "astorium-token",
+  "version": "1.0.0",
+  "description": "Script to create the Astorium SPL-Token",
+  "main": "index.ts",
+  "scripts": {
+    "start": "ts-node index.ts"
+  },
+  "dependencies": {
+    "@solana/spl-token": "^0.4.6",
+    "@solana/web3.js": "^1.91.8",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
