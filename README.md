@@ -4,10 +4,10 @@ This project contains the source code for the Astorium DeFi project on the Solan
 
 ## Project Structure
 
-- `program/`: This directory contains the source code for the Solana program (smart contract).
-- `token/`: This directory contains the script to create the Astorium SPL-Token.
+- `program/`: This directory contains the source code for the Solana staking program.
+- `token/`: This directory contains the script to create the Astorium SPL-Token with metadata.
 
-## How to Build and Test
+## How to Get Started
 
 ### 1. Prerequisites
 
@@ -15,30 +15,13 @@ This project contains the source code for the Astorium DeFi project on the Solan
 - Install the [Solana CLI](https://docs.solana.com/cli/install).
 - Install [Node.js and npm](https://nodejs.org/en/download/).
 
-### 2. Build the Solana Program
+### 2. Create the Astorium SPL-Token
 
-```bash
-cd program
-cargo build-sbf
-```
+The token creation script uses the Metaplex Token Metadata standard to create the token with a name, symbol, and image.
 
-This will create a `astorium_program.so` file in the `program/target/deploy` directory.
+First, update the `token/metadata.json` file with your desired token details. Make sure to replace the placeholder image URL with a valid one.
 
-### 3. Deploy the Solana Program
-
-You can deploy the program to a local test validator or a public cluster.
-
-To start a local test validator:
-```bash
-solana-test-validator
-```
-
-To deploy the program:
-```bash
-solana program deploy target/deploy/astorium_program.so
-```
-
-### 4. Create the Astorium SPL-Token
+Then, run the following commands:
 
 ```bash
 cd token
@@ -49,18 +32,32 @@ npm start
 This will run the `index.ts` script, which creates the token. You will need to fund the `payer` account with some SOL for the transaction to succeed. You can airdrop some SOL to the payer's address using the Solana CLI:
 
 ```bash
-solana airdrop 1 <PAYER_ADDRESS>
+solana airdrop 1 <PAYER_ADDRESS> --url https://api.devnet.solana.com
 ```
 
-**Note:** I was unable to test the build and deployment steps in this environment due to some technical limitations. However, the provided instructions are the standard way to build and deploy Solana programs and should work in a local development environment.
+### 3. Build and Deploy the Staking Program
+
+The staking program allows users to stake their Astorium tokens.
+
+To build the program:
+```bash
+cd program
+cargo build-sbf
+```
+
+This will create a `astorium_program.so` file in the `program/target/deploy` directory.
+
+To deploy the program:
+```bash
+solana program deploy target/deploy/astorium_program.so
+```
+
+### 4. Interacting with the Staking Program
+
+To interact with the staking program, you will need to build a frontend application that sends transactions to the program's instructions (`InitializeStakeAccount`, `Stake`, `Unstake`). This is a common next step after deploying the program.
 
 ## Multi-Chain Compatibility
 
-The user requested that the coin be "tried across different chains". It is important to understand that Solana is not EVM-compatible, which means that smart contracts written for Solana cannot be directly deployed on other blockchains like Ethereum, Binance Smart Chain, or Polygon.
+Solana is not EVM-compatible, which means that smart contracts written for Solana cannot be directly deployed on other blockchains like Ethereum. To achieve cross-chain functionality, you will need to use a "bridge" like [Wormhole](https://wormholenetwork.com/) or [Allbridge](https://allbridge.io/).
 
-To achieve cross-chain functionality, you will need to use a "bridge". A bridge is a service that allows you to transfer tokens from one blockchain to another. Some popular bridges that support Solana are:
-
-- [Wormhole](https://wormholenetwork.com/): A generic messaging protocol that connects to multiple chains including Ethereum, Terra, Binance Smart Chain, Polygon, Avalanche, and Oasis.
-- [Allbridge](https://allbridge.io/): A simple, modern, and reliable way to transfer assets between different networks.
-
-Using a bridge, you can "wrap" your Astorium token on other chains, allowing it to be traded and used in DeFi applications on those chains.
+**Note:** I was unable to test the build and deployment steps in this environment due to some technical limitations. However, the provided instructions are the standard way to build and deploy Solana programs and should work in a local development environment.
