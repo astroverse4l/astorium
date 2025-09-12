@@ -1,49 +1,41 @@
-import {
-  Connection,
-  Keypair,
-  PublicKey,
-  SystemProgram,
-  Transaction,
-} from "@solana/web3.js";
-import {
-  MINT_SIZE,
-  TOKEN_PROGRAM_ID,
-  createInitializeMintInstruction,
-  getMinimumBalanceForRentExemptMint,
-} from "@solana/spl-token";
+import { Connection, Keypair } from "@solana/web3.js";
+import { Metaplex, keypairIdentity, bundlrStorage } from "@metaplex-foundation/js";
+import * as fs from 'fs';
 
 // This is a dummy keypair. In a real application, you would use a secure way to handle keys.
 const payer = Keypair.generate();
-const mintAuthority = Keypair.generate();
-const freezeAuthority = Keypair.generate();
 
 const connection = new Connection("https://api.devnet.solana.com", "confirmed");
 
-async function createToken() {
-  const lamports = await getMinimumBalanceForRentExemptMint(connection);
+const metaplex = Metaplex.make(connection)
+    .use(keypairIdentity(payer))
+    .use(bundlrStorage({
+        address: 'https://devnet.bundlr.network',
+        providerUrl: 'https://api.devnet.solana.com',
+        timeout: 60000,
+    }));
 
-  const mint = Keypair.generate();
+async function createTokenWithMetadata() {
+    console.log("Creating token with metadata...");
 
-  const transaction = new Transaction().add(
-    SystemProgram.createAccount({
-      fromPubkey: payer.publicKey,
-      newAccountPubkey: mint.publicKey,
-      space: MINT_SIZE,
-      lamports,
-      programId: TOKEN_PROGRAM_ID,
-    }),
-    createInitializeMintInstruction(
-      mint.publicKey,
-      2, // 2 decimal places
-      mintAuthority.publicKey,
-      freezeAuthority.publicKey,
-      TOKEN_PROGRAM_ID
-    )
-  );
+    const metadata = JSON.parse(fs.readFileSync("./metadata.json", "utf-8"));
 
-  console.log("Token created with public key:", mint.publicKey.toBase58());
-  console.log("Next steps: run this transaction to create the token on-chain.");
-  console.log("You will need to fund the 'payer' account with some SOL first.");
+    // In a real application, you would upload the metadata to a permanent storage like Arweave.
+    // For this example, we will use the placeholder URI from the metadata file.
+    const { uri } = await metaplex.nfts().uploadMetadata(metadata);
+
+    const { nft: token } = await metaplex.nfts().create({
+        uri: uri,
+        name: metadata.name,
+        symbol: metadata.symbol,
+        sellerFeeBasisPoints: 500, // 5%
+        isCollection: false,
+    });
+
+    console.log("Token created successfully!");
+    console.log("Token address:", token.address.toBase58());
+    console.log("Metadata address:", token.metadataAddress.toBase58());
+    console.log("You will need to fund the 'payer' account with some SOL first.");
 }
 
-createToken();
+createTokenWithMetadata();
